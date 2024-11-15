@@ -1,0 +1,315 @@
+﻿МІНІСТЕРСТВО ОСВІТИ І НАУКИ УКРАЇНИ
+ХАРКІВСЬКИЙ НАЦІОНАЛЬНИЙ УНІВЕРСИТЕТ РАДІОЕЛЕКТРОНІКИ
+
+
+КАФЕДРА ПРОГРАМНОЇ ІНЖЕНЕРІЇ
+
+
+
+
+Звіт
+з лабораторної роботи № 2 з дисципліни
+Програмування під Android
+   
+
+
+
+
+
+Виконав:                                                Перевірив:
+ст. гр. ПЗПІ-23-6                                       ст. викладач кафедри ПІ
+Ананьєв Несторіан                                       Сокорчук Ігор Петрович
+
+
+
+
+
+
+
+
+
+Харків 2024 
+ЗАВДАННЯ
+
+Розробити редактор, у якому з допомогою трьох регуляторів SeekBar 
+встановлюється колір панелі.
+Регулятори визначають RGB компоненти кольору панелі. Зовнішній вигляд 
+екрану редактора повинен залежати від орієнтації пристроя. У портретній 
+орієнтації пристроя, регулятори повинні знаходитися знизу від панелі, займати 
+1/3 висоти і розташовуватися на всю ширину екрану. У ланшафтній – праворуч 
+від панелі і займати 1/3 ширини. Решту екрану повинна займати кольорова 
+панель.
+ 
+ХІД РОБОТИ
+
+     У файлі розмітки головної активності для портретної орієнтації екрану 
+створимо контейнер ConstraintLayout. Для кольорової панелі використаємо 
+компонент View, який буде займати 2/3 (66%) висоти екрану за допомогою 
+android:layout_height="0dp" та 
+app:layout_constraintHeight_percent="0.66":
+
+1. <View
+2.     android:id="@+id/color_panel"
+3.     android:layout_width="match_parent"
+4.     android:layout_height="0dp"
+5.     android:background="@color/black"
+6.     app:layout_constraintHeight_percent="0.66"
+7.     app:layout_constraintTop_toTopOf="parent" />
+
+     Створимо три регулятори SeekBar для зміни компонентів кольору – 
+червоного, зеленого та синього. Розташуємо їх під кольоровою панеллю, щоб 
+вони займали третину висоти екрану та встановлюємо максимальне значення 
+кожного на 255. Код портретної розмітки головної активності наведено у 
+додатку А. 
+     Створюємо файл розмітки land/activity_main.xml для ландшафтної 
+орієнтації екрану. Код розмітки буде аналогічний попередньому, але тепер 
+кольорова панель займає 66% ширини, а не висоти екрану 
+(app:layout_constraintWidth_percent="0.66"), а регулятори компонентів 
+кольору розташовуються праворуч від неї. Код ландшафтної розмітки головної 
+активності наведено у додатку А. 
+     Переходимо до написання коду в класі MainActivity. Створимо змінні для 
+кожного компоненту кольору:
+     
+	1. private int redComponent, greenComponent, blueComponent;
+     
+     Ініціалізуємо звʼязок з інтерфейсом:
+     
+1. redSeekBar = findViewById(R.id.red_seek_bar);
+2. greenSeekBar = findViewById(R.id.green_seek_bar);
+3. blueSeekBar = findViewById(R.id.blue_seek_bar);
+4. colorPanel = findViewById(R.id.color_panel);
+	
+     Для кожного регулятора додамо обробник подій: використаємо метод 
+setOnSeekBarChangeListener, та у методі зворотного виклику 
+onProgressChanged, який викликається при зміні позиції повзунка, будемо 
+оновлювати колір  панелі:
+
+1. seekBar.setOnSeekBarChangeListener(new 
+SeekBar.OnSeekBarChangeListener() {
+2.     @Override
+3.     public void onProgressChanged(SeekBar seekBar, int 
+progress, boolean fromUser) {
+4.         if (seekBar == redSeekBar) {
+5.             redComponent = seekBar.getProgress();
+6.         } else if (seekBar == greenSeekBar) {
+7.             greenComponent = seekBar.getProgress();
+8.         } else if (seekBar == blueSeekBar) {
+9.             blueComponent = seekBar.getProgress();
+10.        }
+11.        updatePanelColor();
+12.    }
+13.    @Override
+14.    public void onStartTrackingTouch(SeekBar seekBar) {
+15.    }
+16.    @Override
+17.    public void onStopTrackingTouch(SeekBar seekBar) {
+18.    }
+19. });
+
+     Для оновлення кольору панелі використовуємо її метод 
+setBackgroundColor, в який передаємо колір, що буде створюватися з трьох 
+компонентів:
+     
+1. private void updatePanelColor() {
+2.     colorPanel.setBackgroundColor(Color.rgb(redComponent, 
+greenComponent, blueComponent));
+3. }
+     
+     Код файлу MainActivity.java наведено у додатку В.
+
+ 
+ВИСНОВКИ
+
+Під час лабораторної роботи було закріплено знання з обробки подій при 
+використанні регуляторів та відображення змін на екрані.
+Відеозвіт на YouTube. URL: https://youtu.be/vBInYsKiXDM
+
+ 
+ВИКОРИСТАНІ ДЖЕРЕЛА
+
+1.	Документація SeekBar Android developers. URL: 
+https://developer.android.com/reference/android/widget/SeekBar (дата 
+звернення: 15.11.2024) 
+ДОДАТОК А
+
+Код файлу розмітки головної активності для портерної орієнтації.
+
+
+1. <?xml version="1.0" encoding="utf-8"?>
+2. <androidx.constraintlayout.widget.ConstraintLayout 
+xmlns:android="http://schemas.android.com/apk/res/android"
+3.     xmlns:app="http://schemas.android.com/apk/res-auto"
+4.     xmlns:tools="http://schemas.android.com/tools"
+5.     android:id="@+id/main"
+6.     android:layout_width="match_parent"
+7.     android:layout_height="match_parent"
+8.     tools:context=".MainActivity">
+9. 
+10.    <View
+11.        android:id="@+id/color_panel"
+12.        android:layout_width="match_parent"
+13.        android:layout_height="0dp"
+14.        android:background="@color/black"
+15.        app:layout_constraintHeight_percent="0.66"
+16.        app:layout_constraintTop_toTopOf="parent" />
+17. 
+18.    <SeekBar
+19.        android:id="@+id/red_seek_bar"
+20.        android:layout_width="match_parent"
+21.        android:layout_height="wrap_content"
+22.        android:max="255"
+23.        
+app:layout_constraintBottom_toTopOf="@+id/green_seek_bar"
+24.        app:layout_constraintTop_toBottomOf="@+id/color_panel" 
+/>
+25. 
+26.    <SeekBar
+27.        android:id="@+id/green_seek_bar"
+28.        android:layout_width="match_parent"
+29.        android:layout_height="wrap_content"
+30.        android:max="255"
+31.        
+app:layout_constraintBottom_toTopOf="@+id/blue_seek_bar"
+32.        app:layout_constraintTop_toBottomOf="@+id/red_seek_bar" 
+/>
+33. 
+34.    <SeekBar
+35.        android:id="@+id/blue_seek_bar"
+36.        android:layout_width="match_parent"
+37.        android:layout_height="wrap_content"
+38.        android:max="255"
+39.        app:layout_constraintBottom_toBottomOf="parent"
+40.        
+app:layout_constraintTop_toBottomOf="@+id/green_seek_bar" />
+41. 
+42. </androidx.constraintlayout.widget.ConstraintLayout> 
+ДОДАТОК Б
+
+Код файлу розмітки головної активності для ландшафтної орієнтації.
+
+1. <?xml version="1.0" encoding="utf-8"?>
+2. <androidx.constraintlayout.widget.ConstraintLayout 
+xmlns:android="http://schemas.android.com/apk/res/android"
+3.     xmlns:app="http://schemas.android.com/apk/res-auto"
+4.     android:layout_width="match_parent"
+5.     android:layout_height="match_parent">
+6. 
+7.     <View
+8.         android:id="@+id/color_panel"
+9.         android:layout_width="0dp"
+10.         android:layout_height="match_parent"
+11.         android:background="@color/black"
+12.         app:layout_constraintStart_toStartOf="parent"
+13.         app:layout_constraintWidth_percent="0.66" />
+14. 
+15.     <SeekBar
+16.         android:id="@+id/red_seek_bar"
+17.         android:layout_width="0dp"
+18.         android:layout_height="wrap_content"
+19.         android:max="255"
+20.         
+app:layout_constraintBottom_toTopOf="@+id/green_seek_bar"
+21.         app:layout_constraintEnd_toEndOf="parent"
+22.         app:layout_constraintHorizontal_bias="0.5"
+23.         app:layout_constraintStart_toEndOf="@+id/color_panel"
+24.         app:layout_constraintTop_toTopOf="parent" />
+25. 
+26.     <SeekBar
+27.         android:id="@+id/green_seek_bar"
+28.         android:layout_width="0dp"
+29.         android:layout_height="wrap_content"
+30.         android:max="255"
+31.         
+app:layout_constraintBottom_toTopOf="@+id/blue_seek_bar"
+32.         app:layout_constraintEnd_toEndOf="parent"
+33.         app:layout_constraintHorizontal_bias="0.5"
+34.         app:layout_constraintStart_toEndOf="@+id/color_panel"
+35.         
+app:layout_constraintTop_toBottomOf="@+id/red_seek_bar" />
+36. 
+37.     <SeekBar
+38.         android:id="@+id/blue_seek_bar"
+39.         android:layout_width="0dp"
+40.         android:layout_height="wrap_content"
+41.         android:max="255"
+42.         app:layout_constraintBottom_toBottomOf="parent"
+43.         app:layout_constraintEnd_toEndOf="parent"
+44.         app:layout_constraintHorizontal_bias="0.5"
+45.         app:layout_constraintStart_toEndOf="@+id/color_panel"
+46.         
+app:layout_constraintTop_toBottomOf="@+id/green_seek_bar" />
+47. 
+48. </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+ 
+ДОДАТОК В
+
+Код файлу MainActivity.java
+
+1. package nure.ananiev.nestorian.lab_task2;
+2. 
+3. import android.graphics.Color;
+4. import android.os.Bundle;
+5. import android.view.View;
+6. import android.widget.SeekBar;
+7. 
+8. import androidx.appcompat.app.AppCompatActivity;
+9. 
+10. public class MainActivity extends AppCompatActivity {
+11. 
+12.     private SeekBar redSeekBar, greenSeekBar, blueSeekBar;
+13.     private View colorPanel;
+14.     private int redComponent, greenComponent, blueComponent;
+15. 
+16.     @Override
+17.     protected void onCreate(Bundle savedInstanceState) {
+18.         super.onCreate(savedInstanceState);
+19.         setContentView(R.layout.activity_main);
+20.         redSeekBar = findViewById(R.id.red_seek_bar);
+21.         greenSeekBar = findViewById(R.id.green_seek_bar);
+22.         blueSeekBar = findViewById(R.id.blue_seek_bar);
+23.         colorPanel = findViewById(R.id.color_panel);
+24.     }
+25. 
+26.     @Override
+27.     protected void onStart() {
+28.         super.onStart();
+29.         initSeekBarListener(redSeekBar);
+30.         initSeekBarListener(greenSeekBar);
+31.         initSeekBarListener(blueSeekBar);
+32.     }
+33. 
+34.     private void initSeekBarListener(SeekBar seekBar) {
+35.         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+36.             @Override
+37.             public void onProgressChanged(SeekBar seekBar, int 
+progress, boolean fromUser) {
+38.                 if (seekBar == redSeekBar) {
+39.                     redComponent = seekBar.getProgress();
+40.                 } else if (seekBar == greenSeekBar) {
+41.                     greenComponent = seekBar.getProgress();
+42.                 } else if (seekBar == blueSeekBar) {
+43.                     blueComponent = seekBar.getProgress();
+44.                 }
+45.                 updatePanelColor();
+46.             }
+47. 
+48.             @Override
+49.             public void onStartTrackingTouch(SeekBar seekBar) {
+50. 
+51.             }
+52. 
+53.             @Override
+54.             public void onStopTrackingTouch(SeekBar seekBar) {
+55. 
+56.             }
+57.         });
+58.     }
+59. 
+60.     private void updatePanelColor() {
+61.         colorPanel.setBackgroundColor(Color.rgb(redComponent, 
+greenComponent, blueComponent));
+62.     }
+63. }
+
