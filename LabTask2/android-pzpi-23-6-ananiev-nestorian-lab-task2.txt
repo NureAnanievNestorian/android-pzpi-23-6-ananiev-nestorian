@@ -43,18 +43,15 @@
 ХІД РОБОТИ
 
      У файлі розмітки головної активності для портретної орієнтації екрану 
-створимо контейнер ConstraintLayout. Для кольорової панелі використаємо 
-компонент View, який буде займати 2/3 (66%) висоти екрану за допомогою 
-android:layout_height="0dp" та 
-app:layout_constraintHeight_percent="0.66":
+створимо контейнер LinearLayout. Для кольорової панелі використаємо 
+компонент View, який буде займати 2/3 висоти екрану:
 
-1. <View
-2.     android:id="@+id/color_panel"
-3.     android:layout_width="match_parent"
-4.     android:layout_height="0dp"
-5.     android:background="@color/black"
-6.     app:layout_constraintHeight_percent="0.66"
-7.     app:layout_constraintTop_toTopOf="parent" />
+1.  <View
+2.      android:id="@+id/color_panel"
+3.      android:layout_width="match_parent"
+4.      android:layout_height="0dp"
+5.      android:background="@color/black"
+6.      android:layout_weight="0.667" />
 
      Створимо три регулятори SeekBar для зміни компонентів кольору – 
 червоного, зеленого та синього. Розташуємо їх під кольоровою панеллю, щоб 
@@ -63,10 +60,9 @@ app:layout_constraintHeight_percent="0.66":
 додатку А. 
      Створюємо файл розмітки land/activity_main.xml для ландшафтної 
 орієнтації екрану. Код розмітки буде аналогічний попередньому, але тепер 
-кольорова панель займає 66% ширини, а не висоти екрану 
-(app:layout_constraintWidth_percent="0.66"), а регулятори компонентів 
-кольору розташовуються праворуч від неї. Код ландшафтної розмітки головної 
-активності наведено у додатку А. 
+кольорова панель займає 66% ширини, а не висоти екрану, а регулятори 
+компонентів кольору розташовуються праворуч від неї. Код ландшафтної 
+розмітки головної активності наведено у додатку А. 
      Переходимо до написання коду в класі MainActivity. Створимо змінні для 
 кожного компоненту кольору:
      
@@ -136,111 +132,98 @@ https://developer.android.com/reference/android/widget/SeekBar (дата
 
 
 1. <?xml version="1.0" encoding="utf-8"?>
-2. <androidx.constraintlayout.widget.ConstraintLayout 
+2. 
+3. <LinearLayout 
 xmlns:android="http://schemas.android.com/apk/res/android"
-3.     xmlns:app="http://schemas.android.com/apk/res-auto"
 4.     xmlns:tools="http://schemas.android.com/tools"
 5.     android:id="@+id/main"
 6.     android:layout_width="match_parent"
 7.     android:layout_height="match_parent"
-8.     tools:context=".MainActivity">
-9. 
-10.    <View
-11.        android:id="@+id/color_panel"
-12.        android:layout_width="match_parent"
-13.        android:layout_height="0dp"
-14.        android:background="@color/black"
-15.        app:layout_constraintHeight_percent="0.66"
-16.        app:layout_constraintTop_toTopOf="parent" />
-17. 
-18.    <SeekBar
-19.        android:id="@+id/red_seek_bar"
-20.        android:layout_width="match_parent"
-21.        android:layout_height="wrap_content"
-22.        android:max="255"
-23.        
-app:layout_constraintBottom_toTopOf="@+id/green_seek_bar"
-24.        app:layout_constraintTop_toBottomOf="@+id/color_panel" 
-/>
+8.     android:orientation="vertical"
+9.     android:weightSum="1"
+10.    
+tools:context="nure.ananiev.nestorian.lab_task2.MainActivity">
+11. 
+12.     <View
+13.         android:id="@+id/color_panel"
+14.         android:layout_width="match_parent"
+15.         android:layout_height="0dp"
+16.         android:background="@color/black"
+17.         android:layout_weight="0.667" />
+18. 
+19.     <SeekBar
+20.         android:id="@+id/red_seek_bar"
+21.         android:layout_width="match_parent"
+22.         android:layout_height="0dp"
+23.         android:max="255"
+24.         android:layout_weight="0.111" />
 25. 
-26.    <SeekBar
-27.        android:id="@+id/green_seek_bar"
-28.        android:layout_width="match_parent"
-29.        android:layout_height="wrap_content"
-30.        android:max="255"
-31.        
-app:layout_constraintBottom_toTopOf="@+id/blue_seek_bar"
-32.        app:layout_constraintTop_toBottomOf="@+id/red_seek_bar" 
-/>
-33. 
-34.    <SeekBar
-35.        android:id="@+id/blue_seek_bar"
-36.        android:layout_width="match_parent"
-37.        android:layout_height="wrap_content"
-38.        android:max="255"
-39.        app:layout_constraintBottom_toBottomOf="parent"
-40.        
-app:layout_constraintTop_toBottomOf="@+id/green_seek_bar" />
-41. 
-42. </androidx.constraintlayout.widget.ConstraintLayout> 
+26.     <SeekBar
+27.         android:id="@+id/green_seek_bar"
+28.         android:layout_width="match_parent"
+29.         android:layout_height="0dp"
+30.         android:max="255"
+31.         android:layout_weight="0.111" />
+32. 
+33.     <SeekBar
+34.         android:id="@+id/blue_seek_bar"
+35.         android:layout_width="match_parent"
+36.         android:layout_height="0dp"
+37.         android:max="255"
+38.         android:layout_weight="0.111" />
+39. 
+40. </LinearLayout> 
 ДОДАТОК Б
 
 Код файлу розмітки головної активності для ландшафтної орієнтації.
 
-1. <?xml version="1.0" encoding="utf-8"?>
-2. <androidx.constraintlayout.widget.ConstraintLayout 
+1.  <?xml version="1.0" encoding="utf-8"?>
+2.  
+3.  <LinearLayout 
 xmlns:android="http://schemas.android.com/apk/res/android"
-3.     xmlns:app="http://schemas.android.com/apk/res-auto"
-4.     android:layout_width="match_parent"
-5.     android:layout_height="match_parent">
-6. 
-7.     <View
-8.         android:id="@+id/color_panel"
-9.         android:layout_width="0dp"
-10.         android:layout_height="match_parent"
-11.         android:background="@color/black"
-12.         app:layout_constraintStart_toStartOf="parent"
-13.         app:layout_constraintWidth_percent="0.66" />
-14. 
-15.     <SeekBar
-16.         android:id="@+id/red_seek_bar"
+4.      android:layout_width="match_parent"
+5.      android:layout_height="match_parent"
+6.      android:weightSum="3"
+7.      android:orientation="horizontal">
+8.  
+9.      <View
+10.         android:id="@+id/color_panel"
+11.         android:layout_width="0dp"
+12.         android:layout_height="match_parent"
+13.         android:layout_weight="2"
+14.         android:background="@color/black" />
+15.  
+16.     <LinearLayout
 17.         android:layout_width="0dp"
-18.         android:layout_height="wrap_content"
-19.         android:max="255"
-20.         
-app:layout_constraintBottom_toTopOf="@+id/green_seek_bar"
-21.         app:layout_constraintEnd_toEndOf="parent"
-22.         app:layout_constraintHorizontal_bias="0.5"
-23.         app:layout_constraintStart_toEndOf="@+id/color_panel"
-24.         app:layout_constraintTop_toTopOf="parent" />
-25. 
-26.     <SeekBar
-27.         android:id="@+id/green_seek_bar"
-28.         android:layout_width="0dp"
-29.         android:layout_height="wrap_content"
-30.         android:max="255"
-31.         
-app:layout_constraintBottom_toTopOf="@+id/blue_seek_bar"
-32.         app:layout_constraintEnd_toEndOf="parent"
-33.         app:layout_constraintHorizontal_bias="0.5"
-34.         app:layout_constraintStart_toEndOf="@+id/color_panel"
-35.         
-app:layout_constraintTop_toBottomOf="@+id/red_seek_bar" />
-36. 
-37.     <SeekBar
-38.         android:id="@+id/blue_seek_bar"
-39.         android:layout_width="0dp"
-40.         android:layout_height="wrap_content"
-41.         android:max="255"
-42.         app:layout_constraintBottom_toBottomOf="parent"
-43.         app:layout_constraintEnd_toEndOf="parent"
-44.         app:layout_constraintHorizontal_bias="0.5"
-45.         app:layout_constraintStart_toEndOf="@+id/color_panel"
-46.         
-app:layout_constraintTop_toBottomOf="@+id/green_seek_bar" />
-47. 
-48. </androidx.constraintlayout.widget.ConstraintLayout>
-
+18.         android:layout_height="match_parent"
+19.         android:layout_weight="1"
+20.         android:weightSum="1"
+21.         android:orientation="vertical">
+22.  
+23.         <SeekBar
+24.             android:id="@+id/red_seek_bar"
+25.             android:layout_width="match_parent"
+26.             android:layout_height="0dp"
+27.             android:max="255"
+28.             android:layout_weight="0.333" />
+29.  
+30.         <SeekBar
+31.             android:id="@+id/green_seek_bar"
+32.             android:layout_width="match_parent"
+33.             android:layout_height="0dp"
+34.             android:max="255"
+35.             android:layout_weight="0.333" />
+36.  
+37.         <SeekBar
+38.             android:id="@+id/blue_seek_bar"
+39.             android:layout_width="match_parent"
+40.             android:layout_height="0dp"
+41.             android:max="255"
+42.             android:layout_weight="0.333" />
+43.  
+44.     </LinearLayout>
+45.  
+46. </LinearLayout>
 
  
 ДОДАТОК В
@@ -281,7 +264,8 @@ app:layout_constraintTop_toBottomOf="@+id/green_seek_bar" />
 32.     }
 33. 
 34.     private void initSeekBarListener(SeekBar seekBar) {
-35.         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+35.         seekBar.setOnSeekBarChangeListener(new 
+SeekBar.OnSeekBarChangeListener() {
 36.             @Override
 37.             public void onProgressChanged(SeekBar seekBar, int 
 progress, boolean fromUser) {
@@ -296,7 +280,8 @@ progress, boolean fromUser) {
 46.             }
 47. 
 48.             @Override
-49.             public void onStartTrackingTouch(SeekBar seekBar) {
+49.             public void onStartTrackingTouch(SeekBar seekBar) 
+{
 50. 
 51.             }
 52. 
