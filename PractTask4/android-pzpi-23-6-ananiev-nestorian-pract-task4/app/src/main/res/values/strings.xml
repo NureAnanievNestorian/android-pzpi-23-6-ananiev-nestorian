@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">pract-task-4</string>
+    <string name="name">Name</string>
+    <string name="age">Age</string>
+    <string name="write_to_sharedpreferences">Write to SharedPreferences</string>
+    <string name="add_to_sqlite">Add to sqlite</string>
+    <string name="name_description">Name:</string>
+    <string name="age_description">Age:</string>
+    <string name="read_name_from_file">Read name from file</string>
+    <string name="write_name_to_file">Write name to file</string>
+</resources>
