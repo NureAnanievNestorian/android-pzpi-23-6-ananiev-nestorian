@@ -1,1 +1,492 @@
-﻿МІНІСТЕРСТВО ОСВІТИ І НАУКИ УКРАЇНИХАРКІВСЬКИЙ НАЦІОНАЛЬНИЙ УНІВЕРСИТЕТ РАДІОЕЛЕКТРОНІКИКАФЕДРА ПРОГРАМНОЇ ІНЖЕНЕРІЇЗвітз практичної роботи №4 з дисципліниПрограмування під Android   Виконав:                                                       Перевірив:ст. гр. ПЗПІ-23-6                                              ст. викладач кафедри ПІАнаньєв Несторіан Сергійович                                   Сокорчук Ігор ПетровичХарків 2024 ЗАВДАННЯ−	Ознайомитися з роботою SharedPreferences для збереження налаштувань застосунку.−	Опанувати роботу з базою даних SQLite: створення, збереження та отримання даних.−	Вивчити роботу з файлами для збереження даних у внутрішній або зовнішній пам'яті. ХІД РОБОТИ     Створимо простий застосунок, який дозволяє зберігати та відображати налаштування користувача (наприклад, ім'я та вік).     Код файлу розмітки головної активності наведений у додатку А.     При натисканні на кнопку дані мають записуватися у SharedPreferences, а при перезапуску застосунку — автоматично зчитуватися. Цю поведінку реалізує наступний код (метод saveDataToSharedPreferences викликається при натисканні на кнопку, а readDataFromSharedPreferences – у методі onStart):1 public void saveDataToSharedPreferences(View view) {2     SharedPreferences.Editor editor = sharedPreferences.edit();3     editor.putString("name", getEnteredName());4     editor.putInt("age", getEnteredAge());5     editor.apply();6 }7 8 @SuppressLint("SetTextI18n")9 private void readDataFromSharedPreferences() {10    String name = sharedPreferences.getString("name", "");11    int age = sharedPreferences.getInt("age", -1);1213    nameEditText.setText(name);1415    if (age != -1) {16        ageEditText.setText(Integer.toString(age));17    }18 }Створимо базу даних для збереження інформації про користувачів (ім'я, вік). Для цього створимо новий клас DBHelper:1 public class DBHelper extends SQLiteOpenHelper {2     public DBHelper(Context context) {3         super(context, "UsersDb", null, 1);4     }5 6     @Override7     public void onCreate(SQLiteDatabase db) {8         db.execSQL("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)");9     }1011    @Override12    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {1314    }15 }     Реалізуємо додавання нових користувачів у базу через форму введення:1 public void addDataToSqlite(View view) {2     ContentValues values = new ContentValues();3     values.put("name", getEnteredName());4     values.put("age", getEnteredAge());5     db.insert("users", null, values);6 }     Відобразимо список користувачів на екрані. Для цього використаємо RecyclerView.      Додамо новий клас Person:1 public class Person {2     private String name;3     private int age;45     public Person(String name, int age) {6         this.name = name;7         this.age = age;8     }910    public String getName() {11        return name;12    }1314    public int getAge() {15        return age;16    }17 }     Створимо адаптер для RecyclerView (код наведений у додатку Б) та файл розмітки для елемента списку (код наведений у додатку В).      У MainActivity будемо отримувати користувачів з бази даних:1 @SuppressLint("Range")2 private void readDataFromSqlite() {3     Cursor cursor = db.query("users", null, null, null, null, null, null);4     List<Person> people = new ArrayList<>();5     while (cursor.moveToNext()) {6         String name = cursor.getString(cursor.getColumnIndex("name"));7         int age = cursor.getInt(cursor.getColumnIndex("age"));8         people.add(new Person(name, age));9     }10    cursor.close();1112    recyclerView.setLayoutManager(new LinearLayoutManager(this));13    adapter = new PeopleAdapter(people);14    recyclerView.setAdapter(adapter);15 }          Також будемо оновлювати список при додаванні нового користувача до бази даних (додамо виклик методу адаптера addPerson до методу додавання користувача до бази даних):           1 public void addDataToSqlite(View view) {      2     ContentValues values = new ContentValues();      3     values.put("name", getEnteredName());      4     values.put("age", getEnteredAge());      5     db.insert("users", null, values);      6      7     adapter.addPerson(new Person(getEnteredName(), getEnteredAge()));      8 }           Створимо функціонал для запису текстових даних (введеного імені користувача) у файл при натисканні на кнопку:           1 public void writeNameToFile(View view) throws IOException {      2     FileOutputStream fos = openFileOutput(FILE_NAME, Context.MODE_PRIVATE);      3     fos.write(getEnteredName().getBytes());      4     fos.close();      5 }          Реалізуємо можливість зчитування цього файлу та відображення вмісту на екрані (у полі вводу імені) при натисканні на кнопку :           1 public void readNameFromFile(View view) throws IOException {      2     FileInputStream fis = openFileInput(FILE_NAME);      3     int c;      4     String name = "";      5     while ((c = fis.read()) != -1) {      6         name += (char) c;      7     }      8     fis.close();      9     nameEditText.setText(name);      10 }ВИСНОВКИПід час практичної роботи було проведено ознайомлення з основними способами збереження даних у Android: використано SharedPreferences для збереження простих налаштувань користувача у вигляді пар ключ-значення, застосовано SQLite для зберігання великих структурованих даних у реляційній базі та опрацьовано роботу з файлами для запису та зчитування даних з локального сховища додатка. Відеозвіт на YouTube. URL: https://www.youtube.com/watch?v=6mQLKCO9cng ВИКОРИСТАНІ ДЖЕРЕЛА1.	Документація AndroidDevelopers SharedPreferences. URL: https://developer.android.com/training/data-storage/shared-preferences (дата звернення: 29.11.2024)2.	Документація AndroidDevelopers Save data using SQLite. URL: https://developer.android.com/training/data-storage/sqlite (дата звернення: 29.11.2024)3.	Документація AndroidDevelopers SQLiteDatabase. URL: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase (дата звернення: 29.11.2024)ДОДАТОК АФайл розмітки головної активності1 <?xml version="1.0" encoding="utf-8"?>2 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"3     xmlns:app="http://schemas.android.com/apk/res-auto"4     xmlns:tools="http://schemas.android.com/tools"5     android:id="@+id/main"6     android:layout_width="match_parent"7     android:layout_height="match_parent"8     tools:context=".MainActivity">9 10     <EditText11         android:id="@+id/name_edit_text"12         android:layout_width="200dp"13         android:layout_height="wrap_content"14         android:layout_marginTop="10dp"15         android:hint="@string/name"16         android:inputType="text"17         app:layout_constraintEnd_toEndOf="parent"18         app:layout_constraintStart_toStartOf="parent"19         app:layout_constraintTop_toTopOf="parent" />20 21     <EditText22         android:id="@+id/age_edit_text"23         android:layout_width="200dp"24         android:layout_height="wrap_content"25         android:hint="@string/age"26         android:inputType="number"27         app:layout_constraintEnd_toEndOf="parent"28         app:layout_constraintStart_toStartOf="parent"29         app:layout_constraintTop_toBottomOf="@+id/name_edit_text" />30 31     <Button32         android:id="@+id/write_to_shared_preferences_button"33         android:layout_width="wrap_content"34         android:layout_height="wrap_content"35         android:layout_marginTop="15dp"36         android:onClick="saveDataToSharedPreferences"37         android:text="@string/write_to_sharedpreferences"38         app:layout_constraintEnd_toEndOf="@+id/age_edit_text"39         app:layout_constraintStart_toStartOf="@+id/age_edit_text"40         app:layout_constraintTop_toBottomOf="@+id/age_edit_text" />41 42     <Button43         android:id="@+id/add_to_sqlite_button"44         android:layout_width="wrap_content"45         android:layout_height="wrap_content"46         android:onClick="addDataToSqlite"47         android:text="@string/add_to_sqlite"48         app:layout_constraintEnd_toEndOf="parent"49         app:layout_constraintStart_toStartOf="parent"50         app:layout_constraintTop_toBottomOf="@+id/write_to_shared_preferences_button" />51 52     <Button53         android:id="@+id/read_name_button"54         android:layout_width="wrap_content"55         android:layout_height="wrap_content"56         android:onClick="readNameFromFile"57         android:text="@string/read_name_from_file"58         app:layout_constraintEnd_toEndOf="parent"59         app:layout_constraintHorizontal_bias="0.5"60         app:layout_constraintStart_toEndOf="@+id/write_name_button"61         app:layout_constraintTop_toBottomOf="@+id/add_to_sqlite_button" />62 63     <Button64         android:id="@+id/write_name_button"65         android:layout_width="wrap_content"66         android:layout_height="wrap_content"67         android:onClick="writeNameToFile"68         android:text="@string/write_name_to_file"69         app:layout_constraintEnd_toStartOf="@+id/read_name_button"70         app:layout_constraintHorizontal_bias="0.5"71         app:layout_constraintStart_toStartOf="parent"72         app:layout_constraintTop_toBottomOf="@+id/add_to_sqlite_button" />73 74     <androidx.recyclerview.widget.RecyclerView75         android:id="@+id/recycler_view"76         android:layout_width="match_parent"77         android:layout_height="0dp"78         app:layout_constraintBottom_toBottomOf="parent"79         app:layout_constraintTop_toBottomOf="@+id/write_name_button" />80 81 </androidx.constraintlayout.widget.ConstraintLayout>ДОДАТОК БФайл адаптеру для RecyclerView1  package nure.ananiev.nestorian.pract_task_4;2  3  import android.annotation.SuppressLint;4  import android.view.LayoutInflater;5  import android.view.View;6  import android.view.ViewGroup;7  import android.widget.TextView;8  9  import androidx.annotation.NonNull;10 import androidx.recyclerview.widget.RecyclerView;11 12 import java.util.List;13 14 public class PeopleAdapter extends RecyclerView.Adapter<PeopleAdapter.ViewHolder> {15     private final List<Person> people;16 17     public PeopleAdapter(List<Person> people) {18         this.people = people;19     }20 21     public void addPerson(Person person) {22         people.add(person);23         notifyItemInserted(people.size() - 1);24     }25 26     public static class ViewHolder extends RecyclerView.ViewHolder {27         public TextView nameTextView;28         public TextView ageTextView;29 30         public ViewHolder(View v) {31             super(v);32             nameTextView = v.findViewById(R.id.name_text_view);33             ageTextView = v.findViewById(R.id.age_text_view);34         }35     }36 37     @NonNull38     @Override39     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {40         View v = LayoutInflater.from(parent.getContext())41                 .inflate(R.layout.item_person, parent, false);42         return new ViewHolder(v);43     }44 45     @SuppressLint("SetTextI18n")46     @Override47     public void onBindViewHolder(ViewHolder holder, int position) {48         Person person = people.get(position);49 50         holder.nameTextView.setText(person.getName());51         holder.ageTextView.setText(Integer.toString(person.getAge()));52     }53 54     @Override55     public int getItemCount() {56         return people.size();57     }58 }ДОДАТОК ВФайл розмітки для елемента списку1  <?xml version="1.0" encoding="utf-8"?>2  <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"3      xmlns:app="http://schemas.android.com/apk/res-auto"4      android:layout_width="match_parent"5      android:layout_height="wrap_content"6      android:paddingVertical="10dp">7  8      <TextView9          android:id="@+id/name_description_text_view"10         android:layout_width="wrap_content"11         android:layout_height="wrap_content"12         android:text="@string/name_description"13         app:layout_constraintEnd_toStartOf="@+id/name_text_view"14         app:layout_constraintHorizontal_bias="0.5"15         app:layout_constraintHorizontal_chainStyle="packed"16         app:layout_constraintStart_toStartOf="parent"17         app:layout_constraintTop_toTopOf="parent" />18 19     <TextView20         android:id="@+id/name_text_view"21         android:layout_width="wrap_content"22         android:layout_height="wrap_content"23         android:layout_marginStart="10dp"24         android:text="Name"25         android:textColor="@color/black"26         app:layout_constraintEnd_toEndOf="parent"27         app:layout_constraintHorizontal_bias="0.5"28         app:layout_constraintStart_toEndOf="@+id/name_description_text_view"29         app:layout_constraintTop_toTopOf="parent" />30 31 32     <TextView33         android:id="@+id/age_description_text_view"34         android:layout_width="wrap_content"35         android:layout_height="wrap_content"36         android:layout_marginTop="10dp"37         android:text="@string/age_description"38         app:layout_constraintEnd_toStartOf="@+id/age_text_view"39         app:layout_constraintHorizontal_bias="0.5"40         app:layout_constraintHorizontal_chainStyle="packed"41         app:layout_constraintStart_toStartOf="parent"42         app:layout_constraintTop_toBottomOf="@+id/name_description_text_view" />43 44     <TextView45         android:id="@+id/age_text_view"46         android:layout_width="wrap_content"47         android:layout_height="wrap_content"48         android:layout_marginStart="10dp"49         android:text="Age"50         android:textColor="@color/black"51         app:layout_constraintEnd_toEndOf="parent"52         app:layout_constraintHorizontal_bias="0.5"53         app:layout_constraintStart_toEndOf="@+id/age_description_text_view"54         app:layout_constraintTop_toTopOf="@+id/age_description_text_view" />55 56 </androidx.constraintlayout.widget.ConstraintLayout>1
+﻿МІНІСТЕРСТВО ОСВІТИ І НАУКИ УКРАЇНИ
+ХАРКІВСЬКИЙ НАЦІОНАЛЬНИЙ УНІВЕРСИТЕТ РАДІОЕЛЕКТРОНІКИ
+
+
+КАФЕДРА ПРОГРАМНОЇ ІНЖЕНЕРІЇ
+
+
+
+
+Звіт
+з практичної роботи №4 з дисципліни
+Програмування під Android
+   
+
+
+
+
+
+Виконав:                                                Перевірив:
+ст. гр. ПЗПІ-23-6                                       ст. викладач кафедри ПІ
+Ананьєв Несторіан Сергійович                            Сокорчук Ігор Петрович
+
+
+
+
+
+
+
+
+Харків 2024 
+ЗАВДАННЯ
+
+−	Ознайомитися з роботою SharedPreferences для збереження налаштувань 
+застосунку.
+−	Опанувати роботу з базою даних SQLite: створення, збереження та 
+отримання даних.
+−	Вивчити роботу з файлами для збереження даних у внутрішній або 
+зовнішній пам'яті.
+
+ 
+ХІД РОБОТИ
+     Створимо простий застосунок, який дозволяє зберігати та відображати 
+налаштування користувача (наприклад, ім'я та вік).
+     Код файлу розмітки головної активності наведений у додатку А.
+     При натисканні на кнопку дані мають записуватися у SharedPreferences, а 
+при перезапуску застосунку — автоматично зчитуватися. Цю поведінку 
+реалізує наступний код (метод saveDataToSharedPreferences викликається при 
+натисканні на кнопку, а readDataFromSharedPreferences – у методі onStart):
+
+1 public void saveDataToSharedPreferences(View view) {
+2     SharedPreferences.Editor editor = sharedPreferences.edit();
+3     editor.putString("name", getEnteredName());
+4     editor.putInt("age", getEnteredAge());
+5     editor.apply();
+6 }
+7 
+8 @SuppressLint("SetTextI18n")
+9 private void readDataFromSharedPreferences() {
+10    String name = sharedPreferences.getString("name", "");
+11    int age = sharedPreferences.getInt("age", -1);
+12
+13    nameEditText.setText(name);
+14
+15    if (age != -1) {
+16        ageEditText.setText(Integer.toString(age));
+17    }
+18 }
+
+Створимо базу даних для збереження інформації про користувачів (ім'я, вік). 
+Для цього створимо новий клас DBHelper:
+
+1 public class DBHelper extends SQLiteOpenHelper {
+2     public DBHelper(Context context) {
+3         super(context, "UsersDb", null, 1);
+4     }
+5 
+6     @Override
+7     public void onCreate(SQLiteDatabase db) {
+8         db.execSQL("CREATE TABLE users (id INTEGER PRIMARY KEY, 
+name TEXT, age INTEGER)");
+9     }
+10
+11    @Override
+12    public void onUpgrade(SQLiteDatabase db, int oldVersion, int 
+newVersion) {
+13
+14    }
+15 }
+
+     Реалізуємо додавання нових користувачів у базу через форму введення:
+
+1 public void addDataToSqlite(View view) {
+2     ContentValues values = new ContentValues();
+3     values.put("name", getEnteredName());
+4     values.put("age", getEnteredAge());
+5     db.insert("users", null, values);
+6 }
+
+     Відобразимо список користувачів на екрані. Для цього використаємо 
+RecyclerView. 
+     Додамо новий клас Person:
+
+1 public class Person {
+2     private String name;
+3     private int age;
+4
+5     public Person(String name, int age) {
+6         this.name = name;
+7         this.age = age;
+8     }
+9
+10    public String getName() {
+11        return name;
+12    }
+13
+14    public int getAge() {
+15        return age;
+16    }
+17 }
+
+     Створимо адаптер для RecyclerView (код наведений у додатку Б) та файл 
+розмітки для елемента списку (код наведений у додатку В). 
+     У MainActivity будемо отримувати користувачів з бази даних:
+
+1 @SuppressLint("Range")
+2 private void readDataFromSqlite() {
+3     Cursor cursor = db.query("users", null, null, null, null, 
+null, null);
+4     List<Person> people = new ArrayList<>();
+5     while (cursor.moveToNext()) {
+6         String name = 
+cursor.getString(cursor.getColumnIndex("name"));
+7         int age = cursor.getInt(cursor.getColumnIndex("age"));
+8         people.add(new Person(name, age));
+9     }
+10    cursor.close();
+11
+12    recyclerView.setLayoutManager(new 
+LinearLayoutManager(this));
+13    adapter = new PeopleAdapter(people);
+14    recyclerView.setAdapter(adapter);
+15 }
+     
+     Також будемо оновлювати список при додаванні нового користувача до 
+бази даних (додамо виклик методу адаптера addPerson до методу додавання 
+користувача до бази даних):
+     
+      1 public void addDataToSqlite(View view) {
+      2     ContentValues values = new ContentValues();
+      3     values.put("name", getEnteredName());
+      4     values.put("age", getEnteredAge());
+      5     db.insert("users", null, values);
+      6
+      7     adapter.addPerson(new Person(getEnteredName(), 
+getEnteredAge()));
+      8 }
+      
+
+     Створимо функціонал для запису текстових даних (введеного імені 
+користувача) у файл при натисканні на кнопку:
+     
+      1 public void writeNameToFile(View view) throws IOException {
+      2     FileOutputStream fos = openFileOutput(FILE_NAME, 
+Context.MODE_PRIVATE);
+      3     fos.write(getEnteredName().getBytes());
+      4     fos.close();
+      5 }
+     
+     Реалізуємо можливість зчитування цього файлу та відображення вмісту 
+на екрані (у полі вводу імені) при натисканні на кнопку :
+     
+      1 public void readNameFromFile(View view) throws IOException {
+      2     FileInputStream fis = openFileInput(FILE_NAME);
+      3     int c;
+      4     String name = "";
+      5     while ((c = fis.read()) != -1) {
+      6         name += (char) c;
+      7     }
+      8     fis.close();
+      9     nameEditText.setText(name);
+      10 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ВИСНОВКИ
+
+Під час практичної роботи було проведено ознайомлення з основними 
+способами збереження даних у Android: використано SharedPreferences для 
+збереження простих налаштувань користувача у вигляді пар ключ-значення, 
+застосовано SQLite для зберігання великих структурованих даних у реляційній 
+базі та опрацьовано роботу з файлами для запису та зчитування даних з 
+локального сховища додатка. 
+Відеозвіт на YouTube. URL: https://www.youtube.com/watch?v=6mQLKCO9cng
+
+ 
+ВИКОРИСТАНІ ДЖЕРЕЛА
+
+1.	Документація AndroidDevelopers SharedPreferences. URL: 
+https://developer.android.com/training/data-storage/shared-preferences (дата 
+звернення: 29.11.2024)
+2.	Документація AndroidDevelopers Save data using SQLite. URL: 
+https://developer.android.com/training/data-storage/sqlite (дата звернення: 
+29.11.2024)
+3.	Документація AndroidDevelopers SQLiteDatabase. URL: 
+https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase 
+(дата звернення: 29.11.2024)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ДОДАТОК А
+
+Файл розмітки головної активності
+
+1 <?xml version="1.0" encoding="utf-8"?>
+2 <androidx.constraintlayout.widget.ConstraintLayout 
+xmlns:android="http://schemas.android.com/apk/res/android"
+3     xmlns:app="http://schemas.android.com/apk/res-auto"
+4     xmlns:tools="http://schemas.android.com/tools"
+5     android:id="@+id/main"
+6     android:layout_width="match_parent"
+7     android:layout_height="match_parent"
+8     tools:context=".MainActivity">
+9 
+10     <EditText
+11         android:id="@+id/name_edit_text"
+12         android:layout_width="200dp"
+13         android:layout_height="wrap_content"
+14         android:layout_marginTop="10dp"
+15         android:hint="@string/name"
+16         android:inputType="text"
+17         app:layout_constraintEnd_toEndOf="parent"
+18         app:layout_constraintStart_toStartOf="parent"
+19         app:layout_constraintTop_toTopOf="parent" />
+20 
+21     <EditText
+22         android:id="@+id/age_edit_text"
+23         android:layout_width="200dp"
+24         android:layout_height="wrap_content"
+25         android:hint="@string/age"
+26         android:inputType="number"
+27         app:layout_constraintEnd_toEndOf="parent"
+28         app:layout_constraintStart_toStartOf="parent"
+29         
+app:layout_constraintTop_toBottomOf="@+id/name_edit_text" />
+30 
+31     <Button
+32         android:id="@+id/write_to_shared_preferences_button"
+33         android:layout_width="wrap_content"
+34         android:layout_height="wrap_content"
+35         android:layout_marginTop="15dp"
+36         android:onClick="saveDataToSharedPreferences"
+37         android:text="@string/write_to_sharedpreferences"
+38         app:layout_constraintEnd_toEndOf="@+id/age_edit_text"
+39         
+app:layout_constraintStart_toStartOf="@+id/age_edit_text"
+40         
+app:layout_constraintTop_toBottomOf="@+id/age_edit_text" />
+41 
+42     <Button
+43         android:id="@+id/add_to_sqlite_button"
+44         android:layout_width="wrap_content"
+45         android:layout_height="wrap_content"
+46         android:onClick="addDataToSqlite"
+47         android:text="@string/add_to_sqlite"
+48         app:layout_constraintEnd_toEndOf="parent"
+49         app:layout_constraintStart_toStartOf="parent"
+50         
+app:layout_constraintTop_toBottomOf="@+id/write_to_shared_preferen
+ces_button" />
+51 
+52     <Button
+53         android:id="@+id/read_name_button"
+54         android:layout_width="wrap_content"
+55         android:layout_height="wrap_content"
+56         android:onClick="readNameFromFile"
+57         android:text="@string/read_name_from_file"
+58         app:layout_constraintEnd_toEndOf="parent"
+59         app:layout_constraintHorizontal_bias="0.5"
+60         
+app:layout_constraintStart_toEndOf="@+id/write_name_button"
+61         
+app:layout_constraintTop_toBottomOf="@+id/add_to_sqlite_button" />
+62 
+63     <Button
+64         android:id="@+id/write_name_button"
+65         android:layout_width="wrap_content"
+66         android:layout_height="wrap_content"
+67         android:onClick="writeNameToFile"
+68         android:text="@string/write_name_to_file"
+69         
+app:layout_constraintEnd_toStartOf="@+id/read_name_button"
+70         app:layout_constraintHorizontal_bias="0.5"
+71         app:layout_constraintStart_toStartOf="parent"
+72         
+app:layout_constraintTop_toBottomOf="@+id/add_to_sqlite_button" />
+73 
+74     <androidx.recyclerview.widget.RecyclerView
+75         android:id="@+id/recycler_view"
+76         android:layout_width="match_parent"
+77         android:layout_height="0dp"
+78         app:layout_constraintBottom_toBottomOf="parent"
+79         
+app:layout_constraintTop_toBottomOf="@+id/write_name_button" />
+80 
+81 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+ДОДАТОК Б
+
+Файл адаптеру для RecyclerView
+
+1  package nure.ananiev.nestorian.pract_task_4;
+2  
+3  import android.annotation.SuppressLint;
+4  import android.view.LayoutInflater;
+5  import android.view.View;
+6  import android.view.ViewGroup;
+7  import android.widget.TextView;
+8  
+9  import androidx.annotation.NonNull;
+10 import androidx.recyclerview.widget.RecyclerView;
+11 
+12 import java.util.List;
+13 
+14 public class PeopleAdapter extends 
+RecyclerView.Adapter<PeopleAdapter.ViewHolder> {
+15     private final List<Person> people;
+16 
+17     public PeopleAdapter(List<Person> people) {
+18         this.people = people;
+19     }
+20 
+21     public void addPerson(Person person) {
+22         people.add(person);
+23         notifyItemInserted(people.size() - 1);
+24     }
+25 
+26     public static class ViewHolder extends 
+RecyclerView.ViewHolder {
+27         public TextView nameTextView;
+28         public TextView ageTextView;
+29 
+30         public ViewHolder(View v) {
+31             super(v);
+32             nameTextView = v.findViewById(R.id.name_text_view);
+33             ageTextView = v.findViewById(R.id.age_text_view);
+34         }
+35     }
+36 
+37     @NonNull
+38     @Override
+39     public ViewHolder onCreateViewHolder(ViewGroup parent, int 
+viewType) {
+40         View v = LayoutInflater.from(parent.getContext())
+41                 .inflate(R.layout.item_person, parent, false);
+42         return new ViewHolder(v);
+43     }
+44 
+45     @SuppressLint("SetTextI18n")
+46     @Override
+47     public void onBindViewHolder(ViewHolder holder, int 
+position) {
+48         Person person = people.get(position);
+49 
+50         holder.nameTextView.setText(person.getName());
+51         
+holder.ageTextView.setText(Integer.toString(person.getAge()));
+52     }
+53 
+54     @Override
+55     public int getItemCount() {
+56         return people.size();
+57     }
+58 }
+ДОДАТОК В
+
+Файл розмітки для елемента списку
+
+1  <?xml version="1.0" encoding="utf-8"?>
+2  <androidx.constraintlayout.widget.ConstraintLayout 
+xmlns:android="http://schemas.android.com/apk/res/android"
+3      xmlns:app="http://schemas.android.com/apk/res-auto"
+4      android:layout_width="match_parent"
+5      android:layout_height="wrap_content"
+6      android:paddingVertical="10dp">
+7  
+8      <TextView
+9          android:id="@+id/name_description_text_view"
+10         android:layout_width="wrap_content"
+11         android:layout_height="wrap_content"
+12         android:text="@string/name_description"
+13         
+app:layout_constraintEnd_toStartOf="@+id/name_text_view"
+14         app:layout_constraintHorizontal_bias="0.5"
+15         app:layout_constraintHorizontal_chainStyle="packed"
+16         app:layout_constraintStart_toStartOf="parent"
+17         app:layout_constraintTop_toTopOf="parent" />
+18 
+19     <TextView
+20         android:id="@+id/name_text_view"
+21         android:layout_width="wrap_content"
+22         android:layout_height="wrap_content"
+23         android:layout_marginStart="10dp"
+24         android:text="Name"
+25         android:textColor="@color/black"
+26         app:layout_constraintEnd_toEndOf="parent"
+27         app:layout_constraintHorizontal_bias="0.5"
+28         
+app:layout_constraintStart_toEndOf="@+id/name_description_text_vie
+w"
+29         app:layout_constraintTop_toTopOf="parent" />
+30 
+31 
+32     <TextView
+33         android:id="@+id/age_description_text_view"
+34         android:layout_width="wrap_content"
+35         android:layout_height="wrap_content"
+36         android:layout_marginTop="10dp"
+37         android:text="@string/age_description"
+38         app:layout_constraintEnd_toStartOf="@+id/age_text_view"
+39         app:layout_constraintHorizontal_bias="0.5"
+40         app:layout_constraintHorizontal_chainStyle="packed"
+41         app:layout_constraintStart_toStartOf="parent"
+42         
+app:layout_constraintTop_toBottomOf="@+id/name_description_text_vi
+ew" />
+43 
+44     <TextView
+45         android:id="@+id/age_text_view"
+46         android:layout_width="wrap_content"
+47         android:layout_height="wrap_content"
+48         android:layout_marginStart="10dp"
+49         android:text="Age"
+50         android:textColor="@color/black"
+51         app:layout_constraintEnd_toEndOf="parent"
+52         app:layout_constraintHorizontal_bias="0.5"
+53         
+app:layout_constraintStart_toEndOf="@+id/age_description_text_view
+"
+54         
+app:layout_constraintTop_toTopOf="@+id/age_description_text_view" 
+/>
+55 
+56 </androidx.constraintlayout.widget.ConstraintLayout>
+
+1
+
