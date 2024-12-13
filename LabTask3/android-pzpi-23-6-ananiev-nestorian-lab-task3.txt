@@ -1,0 +1,764 @@
+﻿МІНІСТЕРСТВО ОСВІТИ І НАУКИ УКРАЇНИ
+ХАРКІВСЬКИЙ НАЦІОНАЛЬНИЙ УНІВЕРСИТЕТ РАДІОЕЛЕКТРОНІКИ
+
+
+КАФЕДРА ПРОГРАМНОЇ ІНЖЕНЕРІЇ
+
+
+
+
+Звіт
+з лабораторної роботи № 3 з дисципліни
+Програмування під Android
+   
+
+
+
+
+
+Виконав:                                                                    Перевірив:
+ст. гр. ПЗПІ-23-6                       				                    ст. викладач кафедри ПІ
+Ананьєв Несторіан Сергійович		                                        Сокорчук Ігор Петрович
+
+
+
+
+
+
+
+
+
+Харків 2024 
+ЗАВДАННЯ
+
+     Розробити калькулятор на 4 базові арифметичні операції з кнопками для 
+введення аргументів і дій.
+     Калькулятор повинен мати адаптивний користувацький інтерфейс різних 
+орієнтаціях екрану та на екранах різної роздільної здатності.
+ 
+ХІД РОБОТИ
+
+     Для розмітки був використаний ConstraintLayout, в якому знаходиться 
+текстове поле для виведення результату та GridLayout для кнопок калькулятора.
+     
+1 <TextView  
+2     android:id="@+id/result_text"  
+3     android:layout_width="match_parent"  
+4     android:layout_height="0dp"  
+5     app:layout_constraintHeight_percent="0.3"  
+6     android:gravity="center_vertical|end"  
+7     android:letterSpacing="0.05"  
+8     android:maxLines="1"  
+9     android:paddingHorizontal="20dp"  
+10    android:text="0"  
+11    android:textSize="50sp"  
+12    app:layout_constraintTop_toTopOf="parent" />  
+
+     Кнопкам у GridLayout задаємо атрибути android:layout_rowWeight та 
+android:layout_columnWeight для правильного відображення кнопок у сітці. 
+Задаємо  android:backgroundTint для зміни кольору фону кнопки та 
+встановлюємо обробник натискання через android:onClick. Нижче наведено код 
+однієї з кнопок.
+     
+1 <Button  
+2     android:id="@+id/button_1"  
+3     android:layout_width="wrap_content"  
+4     android:layout_height="wrap_content"  
+5     android:layout_rowWeight="1"  
+6     android:layout_columnWeight="1"  
+7     android:backgroundTint="?colorSecondaryContainer"  
+8     android:insetTop="0dp"  
+9     android:insetBottom="0dp"  
+10    android:onClick="onDigitClick"  
+11    android:text="1"  
+12    android:textColor="?colorOnSecondaryContainer"  
+13    android:textSize="22sp"  
+14    app:cornerRadius="0dp"  
+15    tools:ignore="HardcodedText" />  
+
+	Аналогічно створюємо всі інші кнопки чисел, операцій та дій (очистка 
+введеного числа, прибирання останньої введеної цифри, зміна знаку, а також 
+введення десяткової крапки). Код файлу розмітки наведений у додатку А.
+	У класі головної активності створюємо методи для обробки подій 
+натискання на кнопки: onDigitClick, onEqualsClick, onPlusClick, onMinusClick, 
+onMultiplyClick, onDivideClick, onClearClick, onDotClick, onChangeSignClick, 
+onBackspaceClick.
+	При натисканні на кнопку з цифрою додаємо її до текстового поля.
+
+1 public void onDigitClick(View view) {  
+2     Button button = (Button) view;  
+3     String buttonText = button.getText().toString();  
+4     String currentText = 
+resultTextView.getText().toString();  
+5  
+6     if (isLastOperationClicked || currentText.equals("0") || 
+isError) {  
+7         currentText = "";  
+8     }  
+9     isError = false;  
+10  
+11     currentText += buttonText;  
+12     resultTextView.setText(currentText);  
+13     currentValue = new BigDecimal(currentText);  
+14     isLastOperationClicked = false;  
+15 }   
+
+	Створюємо перелік операцій у окремому файлі:
+1 public enum MathOperation {  
+2     PLUS, MINUS, DIVIDE, MULTIPLY  
+3 }  
+
+	При натисканні на кнопки арифметичних операцій викликається метод 
+onOperationClick з відповідною операцією.
+
+1 private void onOperationClick(MathOperation operation) {  
+2     if (isError) {  
+3         return;  
+4     }  
+5     if (!isLastOperationClicked) {  
+6         lastValue = currentValue;  
+7         isLastOperationClicked = true;  
+8     }  
+9     currentOperation = operation;  
+10 }  
+
+При натисканні на «дорівнює» викликається метод onEqualsClick, в якому 
+обчислюється результат арифметичної операції. 
+
+1 public void onEqualsClick(View view) {  
+2     if (currentOperation == null || isError) {  
+3         return;  
+4     }  
+5  
+6     switch (currentOperation) {  
+7         case PLUS:  
+8             currentValue = lastValue.add(currentValue);  
+9             break;  
+10        case MINUS:  
+11            currentValue = lastValue.subtract(currentValue);  
+12            break;  
+13        case DIVIDE:  
+14            if (currentValue.compareTo(BigDecimal.ZERO) == 
+0) {  
+15                resultTextView.setText(R.string.error);  
+16                currentValue = BigDecimal.ZERO;  
+17                currentOperation = null;  
+18                isError = true;  
+19                return;  
+20            }  
+21            currentValue = lastValue.divide(currentValue, 
+10, RoundingMode.HALF_UP);  
+22            break;  
+23        case MULTIPLY:  
+24            currentValue = lastValue.multiply(currentValue);  
+25            break;  
+26    }  
+27  
+28    resultTextView.setText(formatResult(currentValue));  
+29    currentOperation = null;  
+30 }  
+
+     При натисканні на кнопку очистки викликається метод onClearClick.
+
+1 public void onClearClick(View view) {  
+2     resultTextView.setText("0");  
+3     currentValue = BigDecimal.ZERO;  
+4     lastValue = BigDecimal.ZERO;  
+5     currentOperation = null;  
+6     isLastOperationClicked = false;  
+7 }  
+
+     При натисканні на кнопку десяткової крапки викликається метод 
+onDotClick.
+
+1 public void onDotClick(View view) {  
+2     if (isError) {  
+3         return;  
+4     }  
+5     String currentText = 
+resultTextView.getText().toString();  
+6  
+7     if (isLastOperationClicked) {  
+8         resultTextView.setText("0.");  
+9         isLastOperationClicked = false;  
+10    } else if (!currentText.contains(".")) {  
+11        resultTextView.setText(currentText + ".");  
+12    }  
+13 }  
+     
+     При натисканні на кнопку зміни знаку введеного числа викликається 
+метод onChangeSignClick.
+     
+1 public void onChangeSignClick(View view) {  
+2     if (isError) {  
+3         return;  
+4     }  
+5     String currentText = 
+resultTextView.getText().toString();  
+6  
+7     if (!currentText.isEmpty() && !currentText.equals("0")) 
+{  
+8         if (currentText.startsWith("-")) {  
+9             currentText = currentText.substring(1);  
+10        } else {  
+11            currentText = "-" + currentText;  
+12        }  
+13        resultTextView.setText(currentText);  
+14        currentValue = new BigDecimal(currentText);  
+15    }  
+16 }  
+     При натисканні на кнопку прибирання останньої цифри у введеному 
+числі викликається метод onBackspaceClick.
+
+1 public void onBackspaceClick(View view) {  
+2     if (isError) {  
+3         resultTextView.setText("0");  
+4         isError = false;  
+5         return;  
+6     }  
+7  
+8     String currentText = 
+resultTextView.getText().toString();  
+9  
+10    if (!currentText.isEmpty()) {  
+11        currentText = currentText.substring(0, 
+currentText.length() - 1);  
+12        if (currentText.isEmpty() || currentText.equals("-
+")) {  
+13            currentText = "0";  
+14        }  
+15        resultTextView.setText(currentText);  
+16        currentValue = new BigDecimal(currentText);  
+17    }  
+18 }  
+	
+	Повний код файлу MainActivity.java наведений у додатку Б.
+
+ 
+ВИСНОВКИ
+
+Під час лабораторної роботи було створено застосунок калькулятор, закріплено 
+знання з обробки подій при використанні кнопок, обчислення та відображення 
+результату на екрані.
+Відеозвіт на YouTube. URL: https://www.youtube.com/watch?v=J5V2vDyVL9w
+
+ 
+ВИКОРИСТАНІ ДЖЕРЕЛА
+
+1.	GridLayout | Android Developers. URL: 
+https://developer.android.com/reference/android/widget/GridLayout (дата 
+звернення: 13.12.2024).
+  
+ДОДАТОК А
+
+Файл розмітки.
+
+1 <?xml version="1.0" encoding="utf-8"?>  
+2 <androidx.constraintlayout.widget.ConstraintLayout 
+xmlns:android="http://schemas.android.com/apk/res/android"  
+3     xmlns:app="http://schemas.android.com/apk/res-auto"  
+4     xmlns:tools="http://schemas.android.com/tools"  
+5     android:layout_width="match_parent"  
+6     android:layout_height="match_parent"  
+7     tools:context=".MainActivity">  
+8  
+9     <TextView  
+10        android:id="@+id/result_text"  
+11        android:layout_width="match_parent"  
+12        android:layout_height="0dp"  
+13        app:layout_constraintHeight_percent="0.3"  
+14        android:gravity="center_vertical|end"  
+15        android:letterSpacing="0.05"  
+16        android:maxLines="1"  
+17        android:paddingHorizontal="20dp"  
+18        android:text="0"  
+19        android:textSize="50sp"  
+20        app:layout_constraintTop_toTopOf="parent" />  
+21  
+22     <GridLayout  
+23         android:id="@+id/main"  
+24         android:layout_width="match_parent"  
+25         android:layout_height="0dp"  
+26         android:columnCount="4"  
+27         android:rowCount="5"  
+28         app:layout_constraintBottom_toBottomOf="parent"  
+29         app:layout_constraintTop_toBottomOf="@+id/result_text">  
+30  
+31        <Button  
+32            android:id="@+id/clear_button"  
+33            android:layout_width="wrap_content"  
+34            android:layout_height="wrap_content"  
+35            android:layout_rowWeight="1"  
+36            android:layout_columnWeight="1"  
+37            android:backgroundTint="?colorTertiary"  
+38            android:insetTop="0dp"  
+39            android:insetBottom="0dp"  
+40            android:onClick="onClearClick"  
+41            android:text="@string/clear_button"  
+42            android:textColor="?colorOnTertiary"  
+43            android:textSize="22sp"  
+44            app:cornerRadius="0dp" />  
+45  
+46        <Button  
+47            android:id="@+id/plus_minus_button"  
+48            android:layout_width="wrap_content"  
+49            android:layout_height="wrap_content"  
+50            android:layout_rowWeight="1"  
+51            android:layout_columnWeight="1"  
+52            android:backgroundTint="?colorTertiary"  
+53            android:insetTop="0dp"  
+54            android:insetBottom="0dp"  
+55            android:text="@string/plus_minus"  
+56            android:onClick="onChangeSignClick"  
+57            android:textColor="?colorOnTertiary"  
+58            android:textSize="22sp"  
+59            app:cornerRadius="0dp" />  
+60  
+61        <Button  
+62            android:id="@+id/backspace_button"  
+63            android:layout_width="wrap_content"  
+64            android:layout_height="wrap_content"  
+65            android:layout_rowWeight="1"  
+66            android:layout_columnWeight="1"  
+67            android:backgroundTint="?colorTertiary"  
+68            android:insetTop="0dp"  
+69            android:onClick="onBackspaceClick"  
+70            android:insetBottom="0dp"  
+71            android:text="@string/backspace"  
+72            android:textColor="?colorOnTertiary"  
+73            android:textSize="22sp"  
+74            app:cornerRadius="0dp" />  
+75  
+76        <Button  
+77            android:id="@+id/divide_button"  
+78            android:layout_width="wrap_content"  
+79            android:layout_height="wrap_content"  
+80            android:layout_rowWeight="1"  
+81            android:layout_columnWeight="1"  
+82            android:insetTop="0dp"  
+83            android:insetBottom="0dp"  
+84            android:onClick="onDivideClick"  
+85            android:text="@string/divide"  
+86            android:textSize="22sp"  
+87            app:cornerRadius="0dp" />  
+88  
+89        <Button  
+90            android:id="@+id/button_1"  
+91            android:layout_width="wrap_content"  
+92            android:layout_height="wrap_content"  
+93            android:layout_rowWeight="1"  
+94            android:layout_columnWeight="1"  
+95            android:backgroundTint="?colorSecondaryContainer"  
+96            android:insetTop="0dp"  
+97            android:insetBottom="0dp"  
+98            android:onClick="onDigitClick"  
+99            android:text="1"  
+100           android:textColor="?colorOnSecondaryContainer"  
+101           android:textSize="22sp"  
+102           app:cornerRadius="0dp"  
+103           tools:ignore="HardcodedText" />  
+104  
+105       <Button  
+106           android:id="@+id/button_2"  
+107           android:layout_width="wrap_content"  
+108           android:layout_height="wrap_content"  
+109           android:layout_rowWeight="1"  
+110           android:layout_columnWeight="1"  
+111           android:backgroundTint="?colorSecondaryContainer"  
+112           android:insetTop="0dp"  
+113           android:insetBottom="0dp"  
+114           android:onClick="onDigitClick"  
+115           android:text="2"  
+116           android:textColor="?colorOnSecondaryContainer"  
+117           android:textSize="22sp"  
+118           app:cornerRadius="0dp"  
+119           tools:ignore="HardcodedText" />  
+120  
+121       <Button  
+122           android:id="@+id/button_3"  
+123           android:layout_width="wrap_content"  
+124           android:layout_height="wrap_content"  
+125           android:layout_rowWeight="1"  
+126           android:layout_columnWeight="1"  
+127           android:backgroundTint="?colorSecondaryContainer"  
+128           android:insetTop="0dp"  
+129           android:insetBottom="0dp"  
+130           android:onClick="onDigitClick"  
+131           android:text="3"  
+132           android:textColor="?colorOnSecondaryContainer"  
+133           android:textSize="22sp"  
+134           app:cornerRadius="0dp"  
+135           tools:ignore="HardcodedText" />  
+136  
+137       <Button  
+138           android:id="@+id/button_multiply"  
+139           android:layout_width="wrap_content"  
+140           android:layout_height="wrap_content"  
+141           android:layout_rowWeight="1"  
+142           android:layout_columnWeight="1"  
+143           android:insetTop="0dp"  
+144           android:insetBottom="0dp"  
+145           android:onClick="onMultiplyClick"  
+146           android:text="@string/multiply"  
+147           android:textSize="22sp"  
+148           app:cornerRadius="0dp" />  
+149  
+150       <Button  
+151           android:id="@+id/button_4"  
+152           android:layout_width="wrap_content"  
+153           android:layout_height="wrap_content"  
+154           android:layout_rowWeight="1"  
+155           android:layout_columnWeight="1"  
+156           android:backgroundTint="?colorSecondaryContainer"  
+157           android:insetTop="0dp"  
+158           android:insetBottom="0dp"  
+159           android:onClick="onDigitClick"  
+160           android:text="4"  
+161           android:textColor="?colorOnSecondaryContainer"  
+162           android:textSize="22sp"  
+163           app:cornerRadius="0dp"  
+164           tools:ignore="HardcodedText" />  
+165  
+166       <Button  
+167           android:id="@+id/button_5"  
+168           android:layout_width="wrap_content"  
+169           android:layout_height="wrap_content"  
+170           android:layout_rowWeight="1"  
+171           android:layout_columnWeight="1"  
+172           android:backgroundTint="?colorSecondaryContainer"  
+173           android:insetTop="0dp"  
+174           android:insetBottom="0dp"  
+175           android:onClick="onDigitClick"  
+176           android:text="5"  
+177           android:textColor="?colorOnSecondaryContainer"  
+178           android:textSize="22sp"  
+179           app:cornerRadius="0dp"  
+180           tools:ignore="HardcodedText" />  
+181  
+182       <Button  
+183           android:id="@+id/button_6"  
+184           android:layout_width="wrap_content"  
+185           android:layout_height="wrap_content"  
+186           android:layout_rowWeight="1"  
+187           android:layout_columnWeight="1"  
+188           android:backgroundTint="?colorSecondaryContainer"  
+189           android:insetTop="0dp"  
+190           android:insetBottom="0dp"  
+191           android:onClick="onDigitClick"  
+192           android:text="6"  
+193           android:textColor="?colorOnSecondaryContainer"  
+194           android:textSize="22sp"  
+195           app:cornerRadius="0dp"  
+196           tools:ignore="HardcodedText" />  
+197  
+198       <Button  
+199           android:id="@+id/button_minus"  
+200           android:layout_width="wrap_content"  
+201           android:layout_height="wrap_content"  
+202           android:layout_rowWeight="1"  
+203           android:layout_columnWeight="1"  
+204           android:insetTop="0dp"  
+205           android:insetBottom="0dp"  
+206           android:onClick="onMinusClick"  
+207           android:text="@string/minus"  
+208           android:textSize="22sp"  
+209           app:cornerRadius="0dp" />  
+210  
+211       <Button  
+212           android:id="@+id/button_7"  
+213           android:layout_width="wrap_content"  
+214           android:layout_height="wrap_content"  
+215           android:layout_rowWeight="1"  
+216           android:layout_columnWeight="1"  
+217           android:backgroundTint="?colorSecondaryContainer"  
+218           android:insetTop="0dp"  
+219           android:insetBottom="0dp"  
+220           android:onClick="onDigitClick"  
+221           android:text="7"  
+222           android:textColor="?colorOnSecondaryContainer"  
+223           android:textSize="22sp"  
+224           app:cornerRadius="0dp"  
+225           tools:ignore="HardcodedText" />  
+226  
+227       <Button  
+228           android:id="@+id/button_8"  
+229           android:layout_width="wrap_content"  
+230           android:layout_height="wrap_content"  
+231           android:layout_rowWeight="1"  
+232           android:layout_columnWeight="1"  
+233           android:backgroundTint="?colorSecondaryContainer"  
+234           android:insetTop="0dp"  
+235           android:insetBottom="0dp"  
+236           android:onClick="onDigitClick"  
+237           android:text="8"  
+238           android:textColor="?colorOnSecondaryContainer"  
+239           android:textSize="22sp"  
+240           app:cornerRadius="0dp"  
+241           tools:ignore="HardcodedText" />  
+242  
+243       <Button  
+244           android:id="@+id/button_9"  
+245           android:layout_width="wrap_content"  
+246           android:layout_height="wrap_content"  
+247           android:layout_rowWeight="1"  
+248           android:layout_columnWeight="1"  
+249           android:backgroundTint="?colorSecondaryContainer"  
+250           android:insetTop="0dp"  
+251           android:insetBottom="0dp"  
+252           android:onClick="onDigitClick"  
+253           android:text="9"  
+254           android:textColor="?colorOnSecondaryContainer"  
+255           android:textSize="22sp"  
+256           app:cornerRadius="0dp"  
+257           tools:ignore="HardcodedText" />  
+258  
+259       <Button  
+260           android:id="@+id/button_plus"  
+261           android:layout_width="wrap_content"  
+262           android:layout_height="wrap_content"  
+263           android:layout_rowWeight="1"  
+264           android:layout_columnWeight="1"  
+265           android:insetTop="0dp"  
+266           android:insetBottom="0dp"  
+267           android:onClick="onPlusClick"  
+268           android:text="@string/plus"  
+269           android:textSize="22sp"  
+270           app:cornerRadius="0dp" />  
+271  
+272       <Button  
+273           android:id="@+id/button_0"  
+274           android:layout_width="wrap_content"  
+275           android:layout_height="wrap_content"  
+276           android:layout_rowWeight="1"  
+277           android:layout_columnWeight="1"  
+278           android:backgroundTint="?colorSecondaryContainer"  
+279           android:insetTop="0dp"  
+280           android:insetBottom="0dp"  
+281           android:onClick="onDigitClick"  
+282           android:text="0"  
+283           android:textColor="?colorOnSecondaryContainer"  
+284           android:textSize="22sp"  
+285           app:cornerRadius="0dp"  
+286           tools:ignore="HardcodedText" />  
+287  
+288       <Button  
+289           android:id="@+id/button_dot"  
+290           android:layout_width="wrap_content"  
+291           android:layout_height="wrap_content"  
+292           android:layout_rowWeight="1"  
+293           android:layout_columnWeight="1"  
+294           android:backgroundTint="?colorSecondaryContainer"  
+295           android:insetTop="0dp"  
+296           android:insetBottom="0dp"  
+297           android:onClick="onDotClick"  
+298           android:text="."  
+299           android:textColor="?colorOnSecondaryContainer"  
+300           android:textSize="22sp"  
+301           app:cornerRadius="0dp"  
+302           tools:ignore="HardcodedText" />  
+303  
+304       <Button  
+305           android:id="@+id/button_equal"  
+306           android:layout_width="wrap_content"  
+307           android:layout_height="wrap_content"  
+308           android:layout_rowWeight="1"  
+309           android:layout_columnWeight="1"  
+310           android:insetTop="0dp"  
+311           android:insetBottom="0dp"  
+312           android:onClick="onEqualClick"  
+313           android:text="="  
+314           android:textSize="22sp"  
+315           app:cornerRadius="0dp" />  
+316  
+317   </GridLayout>  
+318  
+319 </androidx.constraintlayout.widget.ConstraintLayout>
+ДОДАТОК А
+
+Код головної активності.
+
+1 package nure.ananiev.nestorian.lab_task3;  
+2  
+3 import android.annotation.SuppressLint;  
+4 import android.os.Bundle;  
+5 import android.view.View;  
+6 import android.widget.Button;  
+7 import android.widget.TextView;  
+8  
+9 import androidx.appcompat.app.AppCompatActivity;  
+10  
+11 import java.math.BigDecimal;  
+12 import java.math.RoundingMode;  
+13  
+14 @SuppressLint("SetTextI18n")  
+15 public class MainActivity extends AppCompatActivity {  
+16  
+17     private TextView resultTextView;  
+18     private BigDecimal currentValue = BigDecimal.ZERO;  
+19     private BigDecimal lastValue = BigDecimal.ZERO;  
+20     private boolean isLastOperationClicked, isError;  
+21     private MathOperation currentOperation;  
+22  
+23     @Override  
+24     protected void onCreate(Bundle savedInstanceState) {  
+25         super.onCreate(savedInstanceState);  
+26         setContentView(R.layout.activity_main);  
+27     }  
+28  
+29     @Override  
+30     protected void onStart() {  
+31         super.onStart();  
+32         resultTextView = findViewById(R.id.result_text);  
+33     }  
+34  
+35     public void onDigitClick(View view) {  
+36         Button button = (Button) view;  
+37         String buttonText = button.getText().toString();  
+38         String currentText = 
+resultTextView.getText().toString();  
+39  
+40         if (isLastOperationClicked || currentText.equals("0") 
+|| isError) {  
+41             currentText = "";  
+42         }  
+43         isError = false;  
+44  
+45         currentText += buttonText;  
+46         resultTextView.setText(currentText);  
+47         currentValue = new BigDecimal(currentText);  
+48         isLastOperationClicked = false;  
+49     }  
+50  
+51     public void onEqualsClick(View view) {  
+52         if (currentOperation == null || isError) {  
+53             return;  
+54         }  
+55  
+56         switch (currentOperation) {  
+57             case PLUS:  
+58                 currentValue = lastValue.add(currentValue);  
+59                 break;  
+60             case MINUS:  
+61                 currentValue = 
+lastValue.subtract(currentValue);  
+62                 break;  
+63             case DIVIDE:  
+64                 if (currentValue.compareTo(BigDecimal.ZERO) == 
+0) {  
+65                     resultTextView.setText(R.string.error);  
+66                     currentValue = BigDecimal.ZERO;  
+67                     currentOperation = null;  
+68                     isError = true;  
+69                     return;  
+70                 }  
+71                 currentValue = lastValue.divide(currentValue, 
+10, RoundingMode.HALF_UP);  
+72                 break;  
+73             case MULTIPLY:  
+74                 currentValue = 
+lastValue.multiply(currentValue);  
+75                 break;  
+76         }  
+77  
+78         resultTextView.setText(formatResult(currentValue));  
+79         currentOperation = null;  
+80     }  
+81  
+82     public void onPlusClick(View view) {  
+83         onOperationClick(MathOperation.PLUS);  
+84     }  
+85  
+86     public void onMinusClick(View view) {  
+87         onOperationClick(MathOperation.MINUS);  
+88     }  
+89  
+90     public void onMultiplyClick(View view) {  
+91         onOperationClick(MathOperation.MULTIPLY);  
+92     }  
+93  
+94     public void onDivideClick(View view) {  
+95         onOperationClick(MathOperation.DIVIDE);  
+96     }  
+97  
+98     private void onOperationClick(MathOperation operation) {  
+99         if (isError) {  
+100            return;  
+101        }  
+102        if (!isLastOperationClicked) {  
+103            lastValue = currentValue;  
+104            isLastOperationClicked = true;  
+105        }  
+106        currentOperation = operation;  
+107    }  
+108  
+109    @SuppressLint("DefaultLocale")  
+110    private String formatResult(BigDecimal result) {  
+111        return result.stripTrailingZeros().toPlainString();  
+112    }  
+113  
+114    public void onClearClick(View view) {  
+115        resultTextView.setText("0");  
+116        currentValue = BigDecimal.ZERO;  
+117        lastValue = BigDecimal.ZERO;  
+118        currentOperation = null;  
+119        isLastOperationClicked = false;  
+120    }  
+121  
+122    public void onDotClick(View view) {  
+123        if (isError) {  
+124            return;  
+125        }  
+126        String currentText = 
+resultTextView.getText().toString();  
+127  
+128        if (isLastOperationClicked) {  
+129            resultTextView.setText("0.");  
+130            isLastOperationClicked = false;  
+131        } else if (!currentText.contains(".")) {  
+132            resultTextView.setText(currentText + ".");  
+133        }  
+134    }  
+135  
+136    public void onChangeSignClick(View view) {  
+137        if (isError) {  
+138            return;  
+139        }  
+140        String currentText = 
+resultTextView.getText().toString();  
+141  
+142        if (!currentText.isEmpty() && !currentText.equals("0")) 
+{  
+143            if (currentText.startsWith("-")) {  
+144                currentText = currentText.substring(1);  
+145            } else {  
+146                currentText = "-" + currentText;  
+147            }  
+148            resultTextView.setText(currentText);  
+149            currentValue = new BigDecimal(currentText);  
+150        }  
+151    }  
+152  
+153    public void onBackspaceClick(View view) {  
+154        if (isError) {  
+155            resultTextView.setText("0");  
+156            isError = false;  
+157            return;  
+158        }  
+159  
+160        String currentText = 
+resultTextView.getText().toString();  
+161  
+162        if (!currentText.isEmpty()) {  
+163            currentText = currentText.substring(0, 
+currentText.length() - 1);  
+164            if (currentText.isEmpty() || currentText.equals("-
+")) {  
+165                currentText = "0";  
+166            }  
+167            resultTextView.setText(currentText);  
+168            currentValue = new BigDecimal(currentText);  
+169        }  
+170    }  
+171 }  
+1
+

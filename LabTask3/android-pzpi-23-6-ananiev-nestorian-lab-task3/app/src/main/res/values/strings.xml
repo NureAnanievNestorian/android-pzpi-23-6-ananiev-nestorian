@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">lab3</string>
+    <string name="clear_button">AC</string>
+    <string name="plus_minus">±</string>
+    <string name="backspace">⌫</string>
+    <string name="divide">/</string>
+    <string name="multiply">*</string>
+    <string name="minus">-</string>
+    <string name="plus">+</string>
+    <string name="dot">.</string>
+    <string name="equals">=</string>
+    <string name="error">Помилка</string>
+</resources>
