@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/add_note_button"
+        android:icon="@drawable/ic_add"
+        android:title=""
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction" />
+
+    <item
+        android:id="@+id/search_note_button"
+        android:icon="@drawable/ic_search"
+        android:title=""
+        app:actionViewClass="android.widget.SearchView"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/filter_importance"
+        android:title="@string/importance"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/filter_importance_all"
+                android:title="@string/all" />
+            <item
+                android:id="@+id/filter_importance_low"
+                android:title="@string/importance_low" />
+            <item
+                android:id="@+id/filter_importance_medium"
+                android:title="@string/importance_medium" />
+            <item
+                android:id="@+id/filter_importance_high"
+                android:title="@string/importance_high" />
+        </menu>
+    </item>
+</menu>
