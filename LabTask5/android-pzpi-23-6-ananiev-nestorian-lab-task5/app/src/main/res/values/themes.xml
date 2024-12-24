@@ -1,0 +1,25 @@
+<resources>
+    <style name="NotesLightTheme" parent="Theme.Material3.Light">
+        <item name="colorPrimary">@color/primary_light</item>
+        <item name="colorPrimaryVariant">@color/primary_variant_light</item>
+        <item name="colorOnPrimary">@color/on_primary_light</item>
+        <item name="colorSecondary">@color/secondary_light</item>
+        <item name="colorOnSecondary">@color/on_secondary_light</item>
+        <item name="android:textColorPrimary">@color/text_color_light</item>
+        <item name="android:textColorSecondary">@color/text_color_light_secondary</item>
+        <item name="fontFamily">@font/fira_sans_condensed</item>
+    </style>
+
+    <style name="NotesDarkTheme" parent="Theme.Material3.Dark">
+        <item name="colorPrimary">@color/primary_dark</item>
+        <item name="colorPrimaryVariant">@color/primary_variant_dark</item>
+        <item name="colorOnPrimary">@color/on_primary_dark</item>
+        <item name="colorSecondary">@color/secondary_dark</item>
+        <item name="colorOnSecondary">@color/on_secondary_dark</item>
+        <item name="android:textColorPrimary">@color/text_color_dark</item>
+        <item name="android:textColorSecondary">@color/text_color_dark_secondary</item>
+        <item name="fontFamily">@font/exo</item>
+    </style>
+
+    <style name="Theme.NureNotes" parent="NotesLightTheme" />
+</resources>

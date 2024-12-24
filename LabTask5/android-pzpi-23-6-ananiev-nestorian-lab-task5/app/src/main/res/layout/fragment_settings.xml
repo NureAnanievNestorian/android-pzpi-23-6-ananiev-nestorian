@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/theme_switch_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/switch_theme"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/theme_switch"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/theme_switch" />
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/theme_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        app:layout_constraintStart_toEndOf="@+id/theme_switch_text"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/font_size_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/theme_switch"
+        android:textSize="20sp"
+        android:text="@string/font_size"
+        android:layout_marginTop="10dp"
+        app:layout_constraintStart_toStartOf="@+id/theme_switch_text"
+        app:layout_constraintTop_toBottomOf="@+id/theme_switch_text" />
+
+    <SeekBar
+        android:id="@+id/font_size_seek_bar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:max="20"
+        android:min="12"
+        style="@style/CustomSeekBar"
+        android:progress="16"
+        app:layout_constraintBottom_toBottomOf="@+id/font_size_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/theme_switch"
+        app:layout_constraintTop_toTopOf="@+id/font_size_text" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

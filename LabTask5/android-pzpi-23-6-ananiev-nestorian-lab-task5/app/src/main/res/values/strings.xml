@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Notes</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+    <string name="no_notes">There are no notes</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="confirmation">Confirmation</string>
+    <string name="note_delete_confirmation">Are you sure you want to delete the note?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="importance_low">Optional</string>
+    <string name="importance_medium">Important</string>
+    <string name="importance_high">Critical</string>
+    <string name="importance">Importance</string>
+    <string name="all">All</string>
+    <string name="switch_theme">Switch theme</string>
+    <string name="font_size">Font size: %1$d</string>
+</resources>

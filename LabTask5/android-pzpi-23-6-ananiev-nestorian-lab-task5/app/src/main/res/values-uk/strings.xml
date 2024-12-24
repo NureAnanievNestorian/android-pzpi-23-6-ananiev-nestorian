@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Нотатки</string>
+    <string name="title">Назва</string>
+    <string name="description">Опис</string>
+    <string name="no_notes">Немає нотаток</string>
+    <string name="edit">Редагувати</string>
+    <string name="delete">Видалити</string>
+    <string name="confirmation">Підтвердження</string>
+    <string name="note_delete_confirmation">Ви впевнені, що хочете видалити нотатку?</string>
+    <string name="yes">Так</string>
+    <string name="no">Ні</string>
+    <string name="importance_low">Неважливо</string>
+    <string name="importance_medium">Важливо</string>
+    <string name="importance_high">Дуже важливо</string>
+    <string name="importance">Важливість</string>
+    <string name="all">Усі</string>
+    <string name="switch_theme">Перемкнути тему</string>
+    <string name="font_size">Розмір шрифту: %1$d</string>
+</resources>
